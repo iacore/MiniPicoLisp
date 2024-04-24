@@ -92,8 +92,8 @@ typedef struct catchFrame {
 
 /* Number access */
 #define num(x)          ((long)(x))
-#define txt(n)          ((any)(num(n)<<1|1))
-#define box(n)          ((any)(num(n)<<2|2))
+#define txt(n)          ((any)(num(n)*2|1))
+#define box(n)          ((any)(num(n)*4|2))
 #define unBox(n)        (num(n)>>2)
 #define Zero            ((any)2)
 #define One             ((any)6)
