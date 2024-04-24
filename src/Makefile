@@ -1,14 +1,12 @@
 # 12dec16abu
 # (c) Software Lab. Alexander Burger
 
-.SILENT:
-
 bin = ../bin
 picoFiles = main.c gc.c apply.c flow.c sym.c subr.c math.c io.c
 
 CC = gcc
 
-minipicolisp: $(bin)/minipicolisp
+picolisp: $(bin)/picolisp
 
 .c.o:
 	echo $*.c:
@@ -18,11 +16,11 @@ minipicolisp: $(bin)/minipicolisp
 	-Wuninitialized -Wstrict-prototypes \
 	-D_GNU_SOURCE  $*.c
 
-$(bin)/minipicolisp: $(picoFiles:.c=.o)
+$(bin)/picolisp: $(picoFiles:.c=.o)
 	mkdir -p $(bin)
-	echo "  " link minipicolisp:
-	$(CC) -o $(bin)/minipicolisp $(picoFiles:.c=.o) -lc -lm
-	strip $(bin)/minipicolisp
+	echo "  " link picolisp:
+	$(CC) -o $(bin)/picolisp $(picoFiles:.c=.o) -lc -lm
+	strip $(bin)/picolisp
 
 $(picoFiles:.c=.o): pico.h sym.d rom.d ram.d
 
