@@ -5,21 +5,22 @@ bin = ../bin
 picoFiles = main.c gc.c apply.c flow.c sym.c subr.c math.c io.c
 
 CC = clang
+CFLAGS = -fsanitize=undefined -fsanitize=memory -fsanitize=undefined -fsanitize=memory -O2
 
 picolisp: $(bin)/picolisp
 
 .c.o:
 	echo $*.c:
-	$(CC) -c -O2 -pipe \
+	$(CC) $(CFLAGS) -c -pipe \
 	-falign-functions -fomit-frame-pointer -fno-strict-aliasing \
 	-W -Wimplicit -Wreturn-type -Wunused -Wformat \
-	-Wuninitialized -Wstrict-prototypes -fsanitize=undefined -fsanitize=memory \
+	-Wuninitialized -Wstrict-prototypes \
 	-D_GNU_SOURCE  $*.c
 
 $(bin)/picolisp: $(picoFiles:.c=.o)
 	mkdir -p $(bin)
 	echo "  " link picolisp:
-	$(CC) -o $(bin)/picolisp $(picoFiles:.c=.o) -lc -lm -fsanitize=undefined -fsanitize=memory
+	$(CC) $(CFLAGS) -o $(bin)/picolisp $(picoFiles:.c=.o) -lc -lm 
 	strip $(bin)/picolisp
 
 $(picoFiles:.c=.o): pico.h sym.d rom.d ram.d
