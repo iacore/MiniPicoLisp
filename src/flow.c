@@ -57,8 +57,8 @@ any doEval(any x) {
       struct {  // bindFrame
          struct bindFrame *link;
          int i, cnt;
-         struct {any sym; any val;} bnd[length(x)];
       } f;
+      symval bnd[length(x)];
 
       x = cdr(x),  x = EVAL(car(x));
       j = cnt = (int)unBox(y);
@@ -80,7 +80,7 @@ any doEval(any x) {
             if (p->i < 0)
                for (i = 0;  i < p->cnt;  ++i) {
                   if (p->bnd[i].sym == car(x)) {
-                     f.bnd[f.cnt].val = val(f.bnd[f.cnt].sym = car(x));
+                     bnd[f.cnt].val = val(bnd[f.cnt].sym = car(x));
                      val(car(x)) = p->bnd[i].val;
                      ++f.cnt;
                      goto next;
@@ -94,7 +94,7 @@ next:    x = cdr(x);
       f.link = Env.bind,  Env.bind = (bindFrame*)&f;
       data(c1) = EVAL(data(c1));
       while (--f.cnt >= 0)
-         val(f.bnd[f.cnt].sym) = f.bnd[f.cnt].val;
+         val(bnd[f.cnt].sym) = bnd[f.cnt].val;
       Env.bind = f.link;
       do {
          for (p = Env.bind, i = n;  --i;  p = p->link);
@@ -125,8 +125,8 @@ any doRun(any x) {
          struct {  // bindFrame
             struct bindFrame *link;
             int i, cnt;
-            struct {any sym; any val;} bnd[length(x)];
          } f;
+         symval bnd[length(x)];
 
          x = cdr(x),  x = EVAL(car(x));
          j = cnt = (int)unBox(y);
@@ -148,7 +148,7 @@ any doRun(any x) {
                if (p->i < 0)
                   for (i = 0;  i < p->cnt;  ++i) {
                      if (p->bnd[i].sym == car(x)) {
-                        f.bnd[f.cnt].val = val(f.bnd[f.cnt].sym = car(x));
+                        bnd[f.cnt].val = val(bnd[f.cnt].sym = car(x));
                         val(car(x)) = p->bnd[i].val;
                         ++f.cnt;
                         goto next;
@@ -162,7 +162,7 @@ next:       x = cdr(x);
          f.link = Env.bind,  Env.bind = (bindFrame*)&f;
          data(c1) = isSym(data(c1))? val(data(c1)) : prog(data(c1));
          while (--f.cnt >= 0)
-            val(f.bnd[f.cnt].sym) = f.bnd[f.cnt].val;
+            val(bnd[f.cnt].sym) = bnd[f.cnt].val;
          Env.bind = f.link;
          do {
             for (p = Env.bind, i = n;  --i;  p = p->link);
@@ -258,36 +258,36 @@ static any evMethod(any o, any expr, any x) {
    struct {  // bindFrame
       struct bindFrame *link;
       int i, cnt;
-      struct {any sym; any val;} bnd[length(y)+3];
    } f;
+   symval bnd[length(y)+3];
 
    f.link = Env.bind,  Env.bind = (bindFrame*)&f;
-   f.i = sizeof(f.bnd) / (2*sizeof(any)) - 2;
-   f.cnt = 1,  f.bnd[0].sym = At,  f.bnd[0].val = val(At);
+   f.i = sizeof(bnd) / (2*sizeof(any)) - 2;
+   f.cnt = 1,  bnd[0].sym = At,  bnd[0].val = val(At);
    while (isCell(y)) {
-      f.bnd[f.cnt].sym = car(y);
-      f.bnd[f.cnt].val = EVAL(car(x));
+      bnd[f.cnt].sym = car(y);
+      bnd[f.cnt].val = EVAL(car(x));
       ++f.cnt, x = cdr(x), y = cdr(y);
    }
    if (isNil(y)) {
       do {
-         x = val(f.bnd[--f.i].sym);
-         val(f.bnd[f.i].sym) = f.bnd[f.i].val;
-         f.bnd[f.i].val = x;
+         x = val(bnd[--f.i].sym);
+         val(bnd[f.i].sym) = bnd[f.i].val;
+         bnd[f.i].val = x;
       } while (f.i);
-      f.bnd[f.cnt].sym = This,  f.bnd[f.cnt++].val = val(This),  val(This) = o;
+      bnd[f.cnt].sym = This,  bnd[f.cnt++].val = val(This),  val(This) = o;
       y = cls,  cls = Env.cls;  Env.cls = y;
       y = key,  key = Env.key;  Env.key = y;
       x = prog(cdr(expr));
    }
    else if (y != At) {
-      f.bnd[f.cnt].sym = y,  f.bnd[f.cnt++].val = val(y),  val(y) = x;
+      bnd[f.cnt].sym = y,  bnd[f.cnt++].val = val(y),  val(y) = x;
       do {
-         x = val(f.bnd[--f.i].sym);
-         val(f.bnd[f.i].sym) = f.bnd[f.i].val;
-         f.bnd[f.i].val = x;
+         x = val(bnd[--f.i].sym);
+         val(bnd[f.i].sym) = bnd[f.i].val;
+         bnd[f.i].val = x;
       } while (f.i);
-      f.bnd[f.cnt].sym = This,  f.bnd[f.cnt++].val = val(This),  val(This) = o;
+      bnd[f.cnt].sym = This,  bnd[f.cnt++].val = val(This),  val(This) = o;
       y = cls,  cls = Env.cls;  Env.cls = y;
       y = key,  key = Env.key;  Env.key = y;
       x = prog(cdr(expr));
@@ -300,13 +300,13 @@ static any evMethod(any o, any expr, any x) {
       while (--n >= 0)
          Push(c[n], EVAL(car(x))),  x = cdr(x);
       do {
-         x = val(f.bnd[--f.i].sym);
-         val(f.bnd[f.i].sym) = f.bnd[f.i].val;
-         f.bnd[f.i].val = x;
+         x = val(bnd[--f.i].sym);
+         val(bnd[f.i].sym) = bnd[f.i].val;
+         bnd[f.i].val = x;
       } while (f.i);
       n = Env.next,  Env.next = cnt;
       arg = Env.arg,  Env.arg = c;
-      f.bnd[f.cnt].sym = This,  f.bnd[f.cnt++].val = val(This),  val(This) = o;
+      bnd[f.cnt].sym = This,  bnd[f.cnt++].val = val(This),  val(This) = o;
       y = cls,  cls = Env.cls;  Env.cls = y;
       y = key,  key = Env.key;  Env.key = y;
       x = prog(cdr(expr));
@@ -315,7 +315,7 @@ static any evMethod(any o, any expr, any x) {
       Env.arg = arg,  Env.next = n;
    }
    while (--f.cnt >= 0)
-      val(f.bnd[f.cnt].sym) = f.bnd[f.cnt].val;
+      val(bnd[f.cnt].sym) = bnd[f.cnt].val;
    Env.bind = f.link;
    Env.cls = cls,  Env.key = key;
    return x;
@@ -591,8 +591,8 @@ any doBind(any ex) {
       struct {  // bindFrame
          struct bindFrame *link;
          int i, cnt;
-         struct {any sym; any val;} bnd[length(y)];
       } f;
+      symval bnd[length(y)];
 
       f.link = Env.bind,  Env.bind = (bindFrame*)&f;
       f.i = f.cnt = 0;
@@ -600,19 +600,19 @@ any doBind(any ex) {
          if (isNum(car(y)))
             argError(ex, car(y));
          if (isSym(car(y))) {
-            f.bnd[f.cnt].sym = car(y);
-            f.bnd[f.cnt].val = val(car(y));
+            bnd[f.cnt].sym = car(y);
+            bnd[f.cnt].val = val(car(y));
          }
          else {
-            f.bnd[f.cnt].sym = caar(y);
-            f.bnd[f.cnt].val = val(caar(y));
+            bnd[f.cnt].sym = caar(y);
+            bnd[f.cnt].val = val(caar(y));
             val(caar(y)) = cdar(y);
          }
          ++f.cnt;
       } while (isCell(y = cdr(y)));
       x = prog(cdr(x));
       while (--f.cnt >= 0)
-         val(f.bnd[f.cnt].sym) = f.bnd[f.cnt].val;
+         val(bnd[f.cnt].sym) = bnd[f.cnt].val;
       Env.bind = f.link;
       return x;
    }
@@ -626,22 +626,22 @@ any doJob(any ex) {
    struct {  // bindFrame
       struct bindFrame *link;
       int i, cnt;
-      struct {any sym; any val;} bnd[length(y)];
    } f;
+   symval bnd[length(y)];
 
    Push(c1,y);
    f.link = Env.bind,  Env.bind = (bindFrame*)&f;
    f.i = f.cnt = 0;
    while (isCell(y)) {
-      f.bnd[f.cnt].sym = caar(y);
-      f.bnd[f.cnt].val = val(caar(y));
+      bnd[f.cnt].sym = caar(y);
+      bnd[f.cnt].val = val(caar(y));
       val(caar(y)) = cdar(y);
       ++f.cnt,  y = cdr(y);
    }
    x = prog(cdr(x));
    for (f.cnt = 0, y = Pop(c1);  isCell(y);  ++f.cnt, y = cdr(y)) {
       cdar(y) = val(caar(y));
-      val(caar(y)) = f.bnd[f.cnt].val;
+      val(caar(y)) = bnd[f.cnt].val;
    }
    Env.bind = f.link;
    return x;
@@ -664,20 +664,20 @@ any doLet(any x) {
       struct {  // bindFrame
          struct bindFrame *link;
          int i, cnt;
-         struct {any sym; any val;} bnd[(length(y)+1)/2];
       } f;
+      symval bnd[(length(y)+1)/2];
 
       f.link = Env.bind,  Env.bind = (bindFrame*)&f;
       f.i = f.cnt = 0;
       do {
-         f.bnd[f.cnt].sym = car(y);
-         f.bnd[f.cnt].val = val(car(y));
+         bnd[f.cnt].sym = car(y);
+         bnd[f.cnt].val = val(car(y));
          ++f.cnt;
          val(car(y)) = EVAL(cadr(y));
       } while (isCell(y = cddr(y)));
       x = prog(cdr(x));
       while (--f.cnt >= 0)
-         val(f.bnd[f.cnt].sym) = f.bnd[f.cnt].val;
+         val(bnd[f.cnt].sym) = bnd[f.cnt].val;
       Env.bind = f.link;
    }
    return x;
@@ -714,19 +714,19 @@ any doUse(any x) {
       struct {  // bindFrame
          struct bindFrame *link;
          int i, cnt;
-         struct {any sym; any val;} bnd[length(y)];
       } f;
+      symval bnd[length(y)];
 
       f.link = Env.bind,  Env.bind = (bindFrame*)&f;
       f.i = f.cnt = 0;
       do {
-         f.bnd[f.cnt].sym = car(y);
-         f.bnd[f.cnt].val = val(car(y));
+         bnd[f.cnt].sym = car(y);
+         bnd[f.cnt].val = val(car(y));
          ++f.cnt;
       } while (isCell(y = cdr(y)));
       x = prog(cdr(x));
       while (--f.cnt >= 0)
-         val(f.bnd[f.cnt].sym) = f.bnd[f.cnt].val;
+         val(bnd[f.cnt].sym) = bnd[f.cnt].val;
       Env.bind = f.link;
    }
    return x;
@@ -1129,45 +1129,45 @@ any doFor(any x) {
    struct {  // bindFrame
       struct bindFrame *link;
       int i, cnt;
-      struct {any sym; any val;} bnd[2];
    } f;
+   symval bnd[2];
 
    f.link = Env.bind,  Env.bind = (bindFrame*)&f;
    f.i = 0;
    if (!isCell(y = car(x = cdr(x))) || !isCell(cdr(y))) {
       if (!isCell(y)) {
          f.cnt = 1;
-         f.bnd[0].sym = y;
-         f.bnd[0].val = val(y);
+         bnd[0].sym = y;
+         bnd[0].val = val(y);
       }
       else {
          f.cnt = 2;
-         f.bnd[0].sym = cdr(y);
-         f.bnd[0].val = val(cdr(y));
-         f.bnd[1].sym = car(y);
-         f.bnd[1].val = val(car(y));
-         val(f.bnd[1].sym) = Zero;
+         bnd[0].sym = cdr(y);
+         bnd[0].val = val(cdr(y));
+         bnd[1].sym = car(y);
+         bnd[1].val = val(car(y));
+         val(bnd[1].sym) = Zero;
       }
       y = Nil;
       x = cdr(x),  Push(c1, EVAL(car(x)));
       if (isNum(data(c1)))
-         val(f.bnd[0].sym) = Zero;
+         val(bnd[0].sym) = Zero;
       body = x = cdr(x);
       for (;;) {
          if (isNum(data(c1))) {
-            val(f.bnd[0].sym) = (any)(num(val(f.bnd[0].sym)) + 4);
-            if (num(val(f.bnd[0].sym)) > num(data(c1)))
+            val(bnd[0].sym) = (any)(num(val(bnd[0].sym)) + 4);
+            if (num(val(bnd[0].sym)) > num(data(c1)))
                break;
          }
          else {
             if (!isCell(data(c1)))
                break;
-            val(f.bnd[0].sym) = car(data(c1));
+            val(bnd[0].sym) = car(data(c1));
             if (!isCell(data(c1) = cdr(data(c1))))
                data(c1) = Nil;
          }
          if (f.cnt == 2)
-            val(f.bnd[1].sym) = (any)(num(val(f.bnd[1].sym)) + 4);
+            val(bnd[1].sym) = (any)(num(val(bnd[1].sym)) + 4);
          do {
             if (!isNum(y = car(x))) {
                if (isSym(y))
@@ -1199,32 +1199,32 @@ any doFor(any x) {
    for1:
       drop(c1);
       if (f.cnt == 2)
-         val(f.bnd[1].sym) = f.bnd[1].val;
-      val(f.bnd[0].sym) = f.bnd[0].val;
+         val(bnd[1].sym) = bnd[1].val;
+      val(bnd[0].sym) = bnd[0].val;
       Env.bind = f.link;
       return y;
    }
    if (!isCell(car(y))) {
       f.cnt = 1;
-      f.bnd[0].sym = car(y);
-      f.bnd[0].val = val(car(y));
+      bnd[0].sym = car(y);
+      bnd[0].val = val(car(y));
    }
    else {
       f.cnt = 2;
-      f.bnd[0].sym = cdar(y);
-      f.bnd[0].val = val(cdar(y));
-      f.bnd[1].sym = caar(y);
-      f.bnd[1].val = val(caar(y));
-      val(f.bnd[1].sym) = Zero;
+      bnd[0].sym = cdar(y);
+      bnd[0].val = val(cdar(y));
+      bnd[1].sym = caar(y);
+      bnd[1].val = val(caar(y));
+      val(bnd[1].sym) = Zero;
    }
    y = cdr(y);
-   val(f.bnd[0].sym) = EVAL(car(y));
+   val(bnd[0].sym) = EVAL(car(y));
    y = cdr(y),  cond = car(y),  y = cdr(y);
    Push(c1,Nil);
    body = x = cdr(x);
    for (;;) {
       if (f.cnt == 2)
-         val(f.bnd[1].sym) = (any)(num(val(f.bnd[1].sym)) + 4);
+         val(bnd[1].sym) = (any)(num(val(bnd[1].sym)) + 4);
       if (isNil(a = EVAL(cond)))
          break;
       val(At) = a;
@@ -1255,13 +1255,13 @@ any doFor(any x) {
          }
       } while (isCell(x = cdr(x)));
       if (isCell(y))
-         val(f.bnd[0].sym) = prog(y);
+         val(bnd[0].sym) = prog(y);
       x = body;
    }
 for2:
    if (f.cnt == 2)
-      val(f.bnd[1].sym) = f.bnd[1].val;
-   val(f.bnd[0].sym) = f.bnd[0].val;
+      val(bnd[1].sym) = bnd[1].val;
+   val(bnd[0].sym) = bnd[0].val;
    Env.bind = f.link;
    return Pop(c1);
 }
@@ -1312,7 +1312,7 @@ static outFrame Out;
 static struct {  // bindFrame
    struct bindFrame *link;
    int i, cnt;
-   struct {any sym; any val;} bnd[2];  // for 'Up' and 'At'
+   symval bnd[2];  // for 'Up' and 'At'
 } Brk;
 
 void brkLoad(any x) {

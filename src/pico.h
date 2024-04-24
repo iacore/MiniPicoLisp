@@ -23,12 +23,15 @@ typedef unsigned char byte;
 typedef unsigned char *ptr;
 
 #undef bool
+
 typedef enum {NO,YES} bool;
 
 typedef struct cell {            // PicoLisp primary data type
    struct cell *car;
    struct cell *cdr;
 } cell, *any;
+
+typedef struct {any sym; any val;} symval;
 
 typedef any (*fun)(any);
 
@@ -42,7 +45,7 @@ typedef struct heap {
 typedef struct bindFrame {
    struct bindFrame *link;
    int i, cnt;
-   struct {any sym; any val;} bnd[1];
+   symval bnd[1];
 } bindFrame;
 
 typedef struct inFrame {

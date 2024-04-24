@@ -9,24 +9,24 @@ any apply(any ex, any foo, bool cf, int n, cell *p) {
       if (isCell(foo)) {
          int i;
          any x = car(foo);
+         symval bnd[length(x)+2];
          struct {  // bindFrame
             struct bindFrame *link;
             int i, cnt;
-            struct {any sym; any val;} bnd[length(x)+2];
          } f;
 
          f.link = Env.bind,  Env.bind = (bindFrame*)&f;
          f.i = 0;
-         f.cnt = 1,  f.bnd[0].sym = At,  f.bnd[0].val = val(At);
+         f.cnt = 1,  bnd[0].sym = At,  bnd[0].val = val(At);
          while (isCell(x)) {
-            f.bnd[f.cnt].val = val(f.bnd[f.cnt].sym = car(x));
-            val(f.bnd[f.cnt].sym) = --n<0? Nil : cf? car(data(p[f.cnt-1])) : data(p[f.cnt-1]);
+            bnd[f.cnt].val = val(bnd[f.cnt].sym = car(x));
+            val(bnd[f.cnt].sym) = --n<0? Nil : cf? car(data(p[f.cnt-1])) : data(p[f.cnt-1]);
             ++f.cnt, x = cdr(x);
          }
          if (isNil(x))
             x = prog(cdr(foo));
          else if (x != At) {
-            f.bnd[f.cnt].sym = x,  f.bnd[f.cnt].val = val(x),  val(x) = Nil;
+            bnd[f.cnt].sym = x,  bnd[f.cnt].val = val(x),  val(x) = Nil;
             while (--n >= 0)
                val(x) = cons(consSym(cf? car(data(p[n+f.cnt-1])) : data(p[n+f.cnt-1]), 0), val(x));
             ++f.cnt;
@@ -47,7 +47,7 @@ any apply(any ex, any foo, bool cf, int n, cell *p) {
             Env.arg = arg,  Env.next = next;
          }
          while (--f.cnt >= 0)
-            val(f.bnd[f.cnt].sym) = f.bnd[f.cnt].val;
+            val(bnd[f.cnt].sym) = bnd[f.cnt].val;
          Env.bind = f.link;
          return x;
       }
@@ -63,32 +63,32 @@ any apply(any ex, any foo, bool cf, int n, cell *p) {
             struct {  // bindFrame
                struct bindFrame *link;
                int i, cnt;
-               struct {any sym; any val;} bnd[length(x = car(expr))+3];
             } f;
+            symval bnd[length(x = car(expr))+3];
 
             Env.cls = TheCls,  Env.key = TheKey;
             f.link = Env.bind,  Env.bind = (bindFrame*)&f;
             f.i = 0;
-            f.cnt = 1,  f.bnd[0].sym = At,  f.bnd[0].val = val(At);
+            f.cnt = 1,  bnd[0].sym = At,  bnd[0].val = val(At);
             --n, ++p;
             while (isCell(x)) {
-               f.bnd[f.cnt].val = val(f.bnd[f.cnt].sym = car(x));
-               val(f.bnd[f.cnt].sym) = --n<0? Nil : cf? car(data(p[f.cnt-1])) : data(p[f.cnt-1]);
+               bnd[f.cnt].val = val(bnd[f.cnt].sym = car(x));
+               val(bnd[f.cnt].sym) = --n<0? Nil : cf? car(data(p[f.cnt-1])) : data(p[f.cnt-1]);
                ++f.cnt, x = cdr(x);
             }
             if (isNil(x)) {
-               f.bnd[f.cnt].sym = This;
-               f.bnd[f.cnt++].val = val(This);
+               bnd[f.cnt].sym = This;
+               bnd[f.cnt++].val = val(This);
                val(This) = o;
                x = prog(cdr(expr));
             }
             else if (x != At) {
-               f.bnd[f.cnt].sym = x,  f.bnd[f.cnt].val = val(x),  val(x) = Nil;
+               bnd[f.cnt].sym = x,  bnd[f.cnt].val = val(x),  val(x) = Nil;
                while (--n >= 0)
                   val(x) = cons(consSym(cf? car(data(p[n+f.cnt-1])) : data(p[n+f.cnt-1]), 0), val(x));
                ++f.cnt;
-               f.bnd[f.cnt].sym = This;
-               f.bnd[f.cnt++].val = val(This);
+               bnd[f.cnt].sym = This;
+               bnd[f.cnt++].val = val(This);
                val(This) = o;
                x = prog(cdr(expr));
             }
@@ -101,8 +101,8 @@ any apply(any ex, any foo, bool cf, int n, cell *p) {
                Env.arg = c;
                for (i = f.cnt-1;  --n >= 0;  ++i)
                   Push(c[n], cf? car(data(p[i])) : data(p[i]));
-               f.bnd[f.cnt].sym = This;
-               f.bnd[f.cnt++].val = val(This);
+               bnd[f.cnt].sym = This;
+               bnd[f.cnt++].val = val(This);
                val(This) = o;
                x = prog(cdr(expr));
                if (cnt)
@@ -110,7 +110,7 @@ any apply(any ex, any foo, bool cf, int n, cell *p) {
                Env.arg = arg,  Env.next = next;
             }
             while (--f.cnt >= 0)
-               val(f.bnd[f.cnt].sym) = f.bnd[f.cnt].val;
+               val(bnd[f.cnt].sym) = bnd[f.cnt].val;
             Env.bind = f.link;
             Env.cls = cls,  Env.key = key;
             return x;

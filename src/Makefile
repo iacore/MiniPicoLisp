@@ -4,7 +4,7 @@
 bin = ../bin
 picoFiles = main.c gc.c apply.c flow.c sym.c subr.c math.c io.c
 
-CC = gcc
+CC = clang
 
 picolisp: $(bin)/picolisp
 
@@ -13,13 +13,13 @@ picolisp: $(bin)/picolisp
 	$(CC) -c -O2 -pipe \
 	-falign-functions -fomit-frame-pointer -fno-strict-aliasing \
 	-W -Wimplicit -Wreturn-type -Wunused -Wformat \
-	-Wuninitialized -Wstrict-prototypes \
+	-Wuninitialized -Wstrict-prototypes -fsanitize=undefined -fsanitize=memory \
 	-D_GNU_SOURCE  $*.c
 
 $(bin)/picolisp: $(picoFiles:.c=.o)
 	mkdir -p $(bin)
 	echo "  " link picolisp:
-	$(CC) -o $(bin)/picolisp $(picoFiles:.c=.o) -lc -lm
+	$(CC) -o $(bin)/picolisp $(picoFiles:.c=.o) -lc -lm -fsanitize=undefined -fsanitize=memory
 	strip $(bin)/picolisp
 
 $(picoFiles:.c=.o): pico.h sym.d rom.d ram.d
